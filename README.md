@@ -40,6 +40,8 @@ All the codes are written in R 4.3.0.
 
 6.  To run the random forest model on picophytoplankton abundances in the South China Sea, run **RF.R** in R.
 
+7.  **Diversity_index.R** provides functions for calculating several diversity indices including exponential Shannon index, Rao-Stirling index, and Leinster-Cobbold index.
+
 ## Data files
 
 1.  Metabolism.csv: Raw data of metabolic rate \~ temperature of different groups of organisms in Hatton et al. (2019).
