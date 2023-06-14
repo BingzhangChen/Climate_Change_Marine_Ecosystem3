@@ -1,0 +1,65 @@
+---
+title: "Two box model description"
+author: "Bingzhang Chen"
+date: "`r Sys.Date()`"
+header-includes:
+   - \usepackage{amsmath, amssymb}
+output: pdf_document
+indent: true
+bibliography: References.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Model description
+
+We assume two regions, one in the tropics (temperature = 25 ºC) and the other one in the temperature zone (temperature = 15 ºC). All individuals share the same birth ($\beta$) and death ($\delta$) rates. The death rate increases with the local community abundance:
+
+\begin{equation}
+  \label{eq:1}
+  \delta_{i} = \delta_{0} + \delta_{1}N_{i} 
+\end{equation}
+
+in which $i$ represents region $N_{i}$. $N_{i}$ represents the number of individuals within region $i$. 
+
+The dynamics of the population size of each species follow:
+
+\begin{equation}
+  \label{eq:2}
+   \begin{split}
+      \frac{dN}{dt} &= (\beta - \delta)N \\
+                    &= (\beta - \delta_{0} - \delta_{1}N)N 
+   \end{split}
+\end{equation}
+
+As such, the carrying capacity ($K$) can be calculated as: $K=\frac{\beta - \delta_{0}}{\delta_{1}}$.
+
+We assume that $\beta$, $\delta_{0}$, $\delta_{1}$ depend on temperature following the Arrhenuis equation:
+
+\begin{subequations}\label{eq:temp}
+\begin{align}
+  \beta = \beta_{r}e^{\frac{E}{k_{b}}(\frac{1}{T_{r}} -\frac{1}{T})} \\
+  \delta_{0} = \delta_{0,r}e^{\frac{E}{k_{b}}(\frac{1}{T_{r}} -\frac{1}{T})} \\
+  \delta_{1} = \delta_{1,r}e^{\frac{E}{k_{b}}(\frac{1}{T_{r}} -\frac{1}{T})}   
+\end{align}
+\end{subequations}
+
+in which $k_{b}$ is the Boltzmann constant ($8.62 \times 10^{-5}$ eV K^-1^). $T_{r}$ is the reference temperature (288.15 K). $T$ is the environmental temperature (K). $E$ is activation energy (eV). $\beta_{r}$, $\delta_{0,r}$, $\delta_{1,r}$ are normalized constants.
+
+## Model step
+
+1. Initialize model
+  + initialize region temperature;
+  + initialize individual birth and death rates;
+  + initialize individual birth and death time (a random variable following exponential distribution with the rates defined above);
+
+2. for each individual at each time step,
+      * Advance biological clock;
+      * As both time to birth and to death are random variables,
+        + If (death time > birth time) then,
+        + If (current clock >= birth time), birth occurs, reset the clock, and birth and death times. During birth, there is a small probability ($\nu$) that speciation can occur and a new species appears. Update the birth and speciation rates.
+        + Otherwise if (current clock >= death time), death occurs and remove the dead individual. Update the death rate.
+      * There is a small probability ($p_{m}$) that an individual can migrate to the other region. 
+      * Save model results at preferred time step.

@@ -1,0 +1,14 @@
+&parameters
+   Nens    = 10,     !number of simulations
+   Ninv    = 50,
+   Duration= 720,   !number of days
+   dtdays  = 0.01,  !864 s
+   theta0  = 0.8,
+   beta0   = 1.0,
+   delta0  = 0.9,
+   delta01 = 0.001,
+   Ea      = 0.65,
+   pmig    = 0.01,   !between 0 and 1
+   Temp(1) = 15.,
+   Temp(2) = 25.,
+/

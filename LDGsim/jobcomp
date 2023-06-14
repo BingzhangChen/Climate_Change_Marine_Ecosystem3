@@ -1,0 +1,82 @@
+#!/bin/bash
+#. /opt/intel/oneapi/setvars.sh
+export SCRATCHDIR=Compile
+export SRCDIR=src
+export MPIDIR=/opt/intel/oneapi/mpi/2021.1.1
+MPI=0
+Test=0 
+if [[ $MPI == 1 ]]; then
+  CFT=mpiifort
+  MPIINC="-I$MPIDIR/include"
+  LFLAGS="-L$MPIDIR/lib -lmpi"
+else
+  CFT=gfortran
+  MPIINC=""
+  LFLAGS=""
+fi
+
+rm -rf ${SCRATCHDIR}
+mkdir ${SCRATCHDIR}
+
+/bin/cp -f  ${SRCDIR}/*.f90    $SCRATCHDIR
+
+#Replace global setting with local setting
+/bin/cp -f ${SRCDIR}/Makefile ${SCRATCHDIR}/Makefile1
+
+if [[ $CFT == ifort ]]; then
+  if [[ $Test == 1 ]]; then
+     echo 'Run model with debug options...'
+     FFLAGS="-O0 -r8 -i4 -g -check all -fpe-all=0 -warn -traceback -debug extended -warn interfaces"
+  else
+     FFLAGS="-fast -r8 -i4"
+     echo 'Run model without debug options...'
+  fi
+elif [[ $CFT == mpiifort ]] || [[ $CFT == mpifort ]]; then
+  if [[ $Test == 1 ]]; then
+     echo 'Using mpi with debug options...'
+     FFLAGS="-O0 -r8 -i4 -g -check all -fpe-all=0 -warn -traceback -debug all -gen-interface"
+  else
+     FFLAGS="-fast -r8 -i4"
+     echo 'Using mpi without debug options...'
+  fi
+elif [[ $CFT == pgfortran ]]; then
+  if [[ $Test == 1 ]]; then
+     echo 'Run model with debug options...'
+     FFLAGS="-Mbounds -Minfo=all -traceback -Mchkfpstk -Mchkstk -Mdalign 
+-Mdclchk -Mdepchk -Miomutex -Mrecursive -Msave -Ktrap=fp -O0 -g -byteswapio"
+  else
+     FFLAGS="-fast -Mipa=fast,inline"
+     echo 'Run model without debug options...'
+  fi
+elif [[ $CFT == gfortran ]]; then
+  if [[ $Test == 1 ]]; then
+     echo 'Run model with debug options...'
+     FFLAGS="-O0 -g -fdefault-real-8 -fdefault-double-8 -fimplicit-none -Wall -Wline-truncation  -Wcharacter-truncation  -Wsurprising  -Waliasing  -Wimplicit-interface  -Wunused-parameter  -fwhole-file  -fcheck=all  -std=f2008  -pedantic  -fbacktrace"
+  else
+     FFLAGS="-O3  -fdefault-real-8 -fdefault-double-8 -march=native -fimplicit-none -Wall  -Wline-truncation  -fwhole-file  -std=f2008"
+     echo 'Run model without debug options...'
+  fi
+else
+  
+  echo "Unknown Fortran compiler"
+	exit
+fi
+
+
+FFLAGS="$FFLAGS $MPIINC"
+cd ${SCRATCHDIR}
+echo 's?$(FFLAGS)?'$FFLAGS'?g' >> flags.tmp
+export MAKEFILE=Makefile1
+sed -f flags.tmp $MAKEFILE > Makefile2
+rm -rf flags.tmp
+
+echo 's?$(CFT)?'$CFT'?g' >> flags.tmp
+sed -f flags.tmp Makefile2 > Makefile3
+rm -rf flags.tmp
+echo 's?$(LFLAGS)?'$LFLAGS'?g' >> flags.tmp
+sed -f flags.tmp Makefile3 > Makefile
+make
+rm -rf flags.tmp
+
+mv UNTB ../
+cd ../
